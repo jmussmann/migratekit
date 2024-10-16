@@ -134,7 +134,7 @@ func (t *OpenStack) Connect(ctx context.Context) error {
 		"volume_id": volume.ID,
 	}).Info("Attaching volume")
 
-	path, err := t.GetPath(ctx)
+	path, err := t.GetPathById(volume.ID)
 	if err != nil {
 		log.Debug("ERROR: Cannot get path")
 		return err
@@ -228,6 +228,17 @@ func (t *OpenStack) GetPath(ctx context.Context) (string, error) {
 	}
 
 	devicePath, err := findDevice(volume.ID)
+	if err != nil {
+		log.Debug("Error, cannot find device")
+		return "", err
+	}
+
+	return devicePath, nil
+}
+
+func (t *OpenStack) GetPathById(id string) (string, error) {
+
+	devicePath, err := findDevice(id)
 	if err != nil {
 		log.Debug("Error, cannot find device")
 		return "", err
