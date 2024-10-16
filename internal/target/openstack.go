@@ -2,6 +2,7 @@ package target
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math"
 	"os"
@@ -133,6 +134,7 @@ func (t *OpenStack) Connect(ctx context.Context) error {
 
 	path, err := t.GetPath(ctx)
 	if err != nil {
+		log.Debug("ERROR: Cannot get path")
 		return err
 	}
 
@@ -150,6 +152,7 @@ func (t *OpenStack) Connect(ctx context.Context) error {
 			VolumeID: volume.ID,
 		}).Extract()
 		if err != nil {
+			log.Debug("ERROR: Cannot create volume attach")
 			return err
 		}
 
@@ -188,14 +191,19 @@ func (t *OpenStack) Connect(ctx context.Context) error {
 
 func (t *OpenStack) createVolume(ctx context.Context, opts *VolumeCreateOpts, metadata map[string]string) (*volumes.Volume, error) {
 	log.Info("Creating new volume")
-	volume, err := volumes.Create(ctx, t.ClientSet.BlockStorage, volumes.CreateOpts{
+	volumeCreateOpts := volumes.CreateOpts{
 		Name:             DiskLabel(t.VirtualMachine, t.Disk),
 		Size:             int(math.Ceil(float64(t.Disk.CapacityInBytes) / 1024 / 1024 / 1024)),
 		AvailabilityZone: opts.AvailabilityZone,
 		VolumeType:       opts.VolumeType,
 		Metadata:         metadata,
-	}, nil).Extract()
+	}
+	debug_json, _ := json.Marshal(volumeCreateOpts)
+	log.Debugf("DiskCapacityInBytes: %d", t.Disk.CapacityInBytes)
+	log.Debugf("Creating new volume: %s", string(debug_json))
+	volume, err := volumes.Create(ctx, t.ClientSet.BlockStorage, volumeCreateOpts, nil).Extract()
 	if err != nil {
+		log.Debug("Error creating volume")
 		return nil, err
 	}
 
