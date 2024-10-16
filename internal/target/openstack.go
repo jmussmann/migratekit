@@ -52,6 +52,7 @@ func (t *OpenStack) GetDisk() *types.VirtualDisk {
 func findDevice(volumeID string) (string, error) {
 	files, err := os.ReadDir("/dev/disk/by-id/")
 	if err != nil {
+		log.Debug("Error, cannot readdir /dev/disk/by-id/")
 		return "", err
 	}
 
@@ -59,6 +60,7 @@ func findDevice(volumeID string) (string, error) {
 		if strings.Contains(file.Name(), volumeID[:18]) {
 			devicePath, err := filepath.EvalSymlinks(filepath.Join("/dev/disk/by-id/", file.Name()))
 			if err != nil {
+				log.Debug("Error, cannot get device path")
 				return "", err
 			}
 
@@ -221,11 +223,13 @@ func (t *OpenStack) createVolume(ctx context.Context, opts *VolumeCreateOpts, me
 func (t *OpenStack) GetPath(ctx context.Context) (string, error) {
 	volume, err := t.ClientSet.GetVolumeForDisk(ctx, t.VirtualMachine, t.Disk)
 	if err != nil {
+		log.Debug("Error, cannot find volume")
 		return "", err
 	}
 
 	devicePath, err := findDevice(volume.ID)
 	if err != nil {
+		log.Debug("Error, cannot find device")
 		return "", err
 	}
 

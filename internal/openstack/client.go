@@ -96,11 +96,13 @@ func (c *ClientSet) GetVolumeForDisk(ctx context.Context, vm *object.VirtualMach
 		},
 	}).AllPages(ctx)
 	if err != nil {
+		log.Debug("Error1")
 		return nil, err
 	}
 
 	volumeList, err := volumes.ExtractVolumes(pages)
 	if err != nil {
+		log.Debug("Error2")
 		return nil, err
 	}
 
