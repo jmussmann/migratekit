@@ -95,6 +95,7 @@ func (c *ClientSet) GetVolumeForDisk(ctx context.Context, vm *object.VirtualMach
 			"disk":        disk.DiskObjectId,
 		},
 	}).AllPages(ctx)
+	log.Debugf("Info: Volumename: %s VM: %s, disk: %s", VolumeName(vm, disk), vm.Reference().Value, disk.DiskObjectId)
 	if err != nil {
 		log.Debug("Error1")
 		return nil, err
@@ -107,10 +108,13 @@ func (c *ClientSet) GetVolumeForDisk(ctx context.Context, vm *object.VirtualMach
 	}
 
 	if len(volumeList) == 0 {
+		log.Debug("Error, volume list empty")
 		return nil, ErrorVolumeNotFound
 	} else if len(volumeList) > 1 {
 		return nil, errors.New("multiple volumes found")
 	}
+
+	log.Debugf("Info: VolumeList[0].ID: %s", volumeList[0].ID)
 
 	return volumes.Get(ctx, c.BlockStorage, volumeList[0].ID).Extract()
 }
